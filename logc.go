@@ -5,8 +5,9 @@ import (
 	_ "github.com/kshvakov/clickhouse"
 	"log"
 	"net"
+	"os"
+	"strings"
 )
-
 
 func process(writer *Writer, parser *Parser, buf []byte) {
 	message, ok := parser.parse(buf)
@@ -16,33 +17,61 @@ func process(writer *Writer, parser *Parser, buf []byte) {
 	}
 }
 
+func GetExecParameters() map[string]string {
+	parameters := map[string]string{
+		"UDP_PORT": "914",
+		"UDP_ADDR": "0.0.0.0",
+		"CH_PORT":  "9000",
+		"CH_ADDR":  "localhost",
+	}
+
+	for k, _ := range parameters {
+		if os.Getenv(k) != "" {
+			parameters[k] = os.Getenv(k)
+		}
+
+	}
+
+	return parameters
+}
+
 func main() {
-	port := 9222
-	addr := "0.0.0.0"
+	p := GetExecParameters()
+
+	debug := false
 	bufSize := 10240
 
 	writer := Writer{}
+	writer.chPort = p["CH_PORT"]
+	writer.chAddr = p["CH_ADDR"]
 	writer.connect()
 
 	parser := Parser{}
 	parser.init()
 
-	pc, err := net.ListenPacket("udp", fmt.Sprintf("%s:%d", addr, port))
-	log.Printf("Started UDP proxy on %s:%d", addr, port)
+	connection, err := net.ListenPacket("udp", fmt.Sprintf("%s:%s", p["UDP_ADDR"], p["UDP_PORT"]))
+	log.Printf("Started UDP proxy on %s:%s", p["UDP_ADDR"], p["UDP_PORT"])
+
 	HandleError(err)
 
-	defer pc.Close()
+	defer connection.Close()
+	go writer.watch()
 
 	for {
 		buf := make([]byte, bufSize)
-
-		n, _, err := pc.ReadFrom(buf)
+		n, _, err := connection.ReadFrom(buf)
 
 		if err != nil {
 			continue
 		}
 
-		go writer.watch()
-		go process(&writer, &parser, buf[:n])
+		clean := buf[:n]
+
+		if debug {
+			message := strings.TrimSpace(string(clean))
+			log.Printf("-> %s\n", message)
+		}
+
+		go process(&writer, &parser, clean)
 	}
 }

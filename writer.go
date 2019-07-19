@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"log"
-	"strings"
 	"time"
 )
 
 type Writer struct {
-	connection *sqlx.DB
-	period     time.Duration
+	chPort string
+	chAddr string
+
+	connection  *sqlx.DB
+	flushPeriod time.Duration
 
 	buffer []LogMessage
 	table  Table
@@ -18,7 +20,7 @@ type Writer struct {
 
 func (s *Writer) watch() {
 	for true {
-		time.Sleep(s.period)
+		time.Sleep(s.flushPeriod)
 		s.write()
 	}
 }
@@ -32,25 +34,27 @@ func (s *Writer) write() {
 		return
 	}
 
-	var messages []string
+	start := time.Now()
+
+	tx, err := s.connection.Begin()
+	sql := fmt.Sprintf("insert into %s (%s) values %s", s.table.title, s.table.getColumnsForInsert(), getLogMessagePrep())
+
+	stmt, err := tx.Prepare(sql)
+	HandleError(err)
 
 	for _, v := range s.buffer {
-		messages = append(messages, v.toString())
+		values := v.getSlice()
+		_, err := stmt.Exec(values...)
+
+		HandleError(err)
 	}
 
-	transaction, err := s.connection.Begin()
-	HandleError(err)
+	HandleError(tx.Commit())
 
-	sql := fmt.Sprintf("insert into %s (%s) values %s", s.table.title, s.table.getColumnsForInsert(), strings.Join(messages, ","))
+	end := time.Now().Sub(start).Seconds() * 1000
+	log.Printf("Inserted %d entries in %.2f ms, mem = %.2fMb", len(s.buffer), end, GetMemoryUsage())
+
 	s.buffer = nil
-
-	result, err := transaction.Exec(sql)
-	HandleError(err)
-
-	err = transaction.Commit()
-	HandleError(err)
-
-	_ = result
 }
 
 func (s *Writer) tryCreateTable() {
@@ -61,12 +65,10 @@ func (s *Writer) tryCreateTable() {
 }
 
 func (s *Writer) connect() {
-	s.period = time.Second * 1
+	s.flushPeriod = time.Second * 10
 
-	clickhousePort := 10000
-	clickhouseAddr := "localhost"
-
-	db, err := sqlx.Open("clickhouse", fmt.Sprintf("tcp://%s:%d", clickhouseAddr, clickhousePort))
+	db, err := sqlx.Open("clickhouse", fmt.Sprintf("tcp://%s:%s", s.chAddr, s.chPort))
+	s.connection = db
 
 	HandleError(err)
 	HandleError(db.Ping())
@@ -76,6 +78,5 @@ func (s *Writer) connect() {
 	s.table.createNginxLayout()
 	s.tryCreateTable()
 
-	s.connection = db
-	log.Printf("Connected to clickhouse on %s:%d/%s", clickhouseAddr, clickhousePort, s.table.title)
+	log.Printf("Connected to clickhouse on %s:%s/%s", s.chAddr, s.chPort, s.table.title)
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/binary"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -29,7 +29,7 @@ func (s *Parser) parse(bytes []byte) (LogMessage, bool) {
 		return logMessage, false
 	}
 
-	logMessage.ip = ip2Long(string(match[3]))
+	logMessage.ip = Ip2Long(string(match[3]))
 
 	parsed, err := time.Parse("02/Jan/2006:15:04:05 -0700", string(match[4]))
 	HandleError(err)
@@ -41,8 +41,15 @@ func (s *Parser) parse(bytes []byte) (LogMessage, bool) {
 	logMessage.method = string(match[5])
 	logMessage.uri = string(match[6])
 	logMessage.protocol = string(match[7])
-	logMessage.status = binary.BigEndian.Uint16(match[8])
-	logMessage.bytes = binary.BigEndian.Uint16(match[9])
+
+	uint, err := strconv.ParseUint(string(match[8]), 10, 16)
+	HandleError(err)
+	logMessage.status = uint16(uint)
+
+	uint, err = strconv.ParseUint(string(match[9]), 10, 16)
+	HandleError(err)
+	logMessage.bytes = uint16(uint)
+
 	logMessage.referer = string(match[10])
 	logMessage.userAgent = string(match[11])
 
