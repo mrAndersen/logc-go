@@ -21,7 +21,7 @@ ENV GOPATH=/var
 RUN go get -u github.com/jmoiron/sqlx
 RUN go get -u github.com/kshvakov/clickhouse
 
-RUN go build -compiler=gccgo -gccgoflags='-O3 -march=native' -o bin/logc
+RUN go build -compiler=gccgo -gccgoflags='-O2' -o bin/logc
 
 #CMD tail -f /dev/null
 CMD /var/logc-go/bin/logc
