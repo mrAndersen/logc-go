@@ -11,8 +11,8 @@ type LogMessage struct {
 	uri       string
 	method    string
 	protocol  string
-	status    uint16
-	bytes     uint16
+	status    int64
+	bytes     int64
 	referer   string
 	userAgent string
 }

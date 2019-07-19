@@ -34,6 +34,9 @@ func (s *Parser) parse(bytes []byte) (LogMessage, bool) {
 	parsed, err := time.Parse("02/Jan/2006:15:04:05 -0700", string(match[4]))
 	HandleError(err)
 
+	loc, _ := time.LoadLocation("UTC")
+	parsed = parsed.In(loc)
+
 	//Mon Jan 2 15:04:05 MST 2006
 	logMessage.time = parsed.Format("2006-01-02 15:04:05")
 	logMessage.date = parsed.Format("2006-01-02")
@@ -42,13 +45,13 @@ func (s *Parser) parse(bytes []byte) (LogMessage, bool) {
 	logMessage.uri = string(match[6])
 	logMessage.protocol = string(match[7])
 
-	uint, err := strconv.ParseUint(string(match[8]), 10, 16)
+	value, err := strconv.ParseInt(string(match[8]), 10, 64)
 	HandleError(err)
-	logMessage.status = uint16(uint)
+	logMessage.status = value
 
-	uint, err = strconv.ParseUint(string(match[9]), 10, 16)
+	value, err = strconv.ParseInt(string(match[9]), 10, 64)
 	HandleError(err)
-	logMessage.bytes = uint16(uint)
+	logMessage.bytes = value
 
 	logMessage.referer = string(match[10])
 	logMessage.userAgent = string(match[11])

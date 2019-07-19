@@ -19,7 +19,7 @@ func process(writer *Writer, parser *Parser, buf []byte) {
 
 func GetExecParameters() map[string]string {
 	parameters := map[string]string{
-		"UDP_PORT": "914",
+		"UDP_PORT": "9222",
 		"UDP_ADDR": "0.0.0.0",
 		"CH_PORT":  "9000",
 		"CH_ADDR":  "localhost",

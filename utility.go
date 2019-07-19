@@ -17,10 +17,7 @@ func HandleError(err error) {
 
 func Ip2Long(ip string) uint32 {
 	var long uint32
-
-	err := binary.Read(bytes.NewBuffer(net.ParseIP(ip).To4()), binary.BigEndian, &long)
-	HandleError(err)
-
+	_ = binary.Read(bytes.NewBuffer(net.ParseIP(ip).To4()), binary.BigEndian, &long)
 	return long
 }
 
