@@ -1,2 +1,10 @@
 #!/usr/bin/env bash
-docker commit loggo mrandersen7/logc-go:1.4; docker push mrandersen7/logc-go
+
+version=$1
+
+if [[ -z "$version" ]]; then
+    echo -e "Enter version"
+    exit 1
+fi
+
+docker commit loggo mrandersen7/logc-go:1.${version}; docker push mrandersen7/logc-go
