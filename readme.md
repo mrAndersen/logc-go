@@ -1,7 +1,6 @@
 Log format for Nginx:
 ```
 log_format main_format '$http_x_real_ip - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"';
-
 ```
 
 Available env parameters for docker container:
