@@ -5,6 +5,7 @@ import (
 )
 
 type LogMessage struct {
+	hostname  string
 	ip        uint32
 	time      string
 	date      string
@@ -18,7 +19,7 @@ type LogMessage struct {
 }
 
 func getLogMessagePrep() string {
-	return fmt.Sprintf("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	return fmt.Sprintf("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 }
 
 func (s *LogMessage) getSlice() []interface{} {
@@ -34,22 +35,7 @@ func (s *LogMessage) getSlice() []interface{} {
 	result = append(result, s.bytes)
 	result = append(result, s.referer)
 	result = append(result, s.userAgent)
+	result = append(result, s.hostname)
 
 	return result
-}
-
-func (s *LogMessage) toString() string {
-	return fmt.Sprintf(
-		"(%d, '%s', '%s', '%s', '%s', '%s', %d, %d, '%s', '%s')",
-		s.ip,
-		s.time,
-		s.date,
-		s.uri,
-		s.method,
-		s.protocol,
-		s.status,
-		s.bytes,
-		s.referer,
-		s.userAgent,
-	)
 }

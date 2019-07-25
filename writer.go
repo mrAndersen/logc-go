@@ -74,7 +74,7 @@ func (s *Writer) connect() {
 	HandleError(db.Ping())
 
 	s.table.title = "nginx"
-	s.table.engine = "MergeTree(date, (status, time, uri, method), 8192)"
+	s.table.engine = "MergeTree(date, (status, time, uri, method, hostname), 8192)"
 	s.table.createNginxLayout()
 	s.tryCreateTable()
 

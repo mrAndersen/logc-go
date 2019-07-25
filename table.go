@@ -55,4 +55,5 @@ func (s *Table) createNginxLayout() {
 	s.Columns = append(s.Columns, DatabaseColumn{"bytes", "UInt16"})
 	s.Columns = append(s.Columns, DatabaseColumn{"referer", "String"})
 	s.Columns = append(s.Columns, DatabaseColumn{"userAgent", "String"})
+	s.Columns = append(s.Columns, DatabaseColumn{"hostname", "String"})
 }
