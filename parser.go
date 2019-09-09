@@ -32,9 +32,12 @@ func (s *Parser) parse(bytes []byte) (LogMessage, bool) {
 	logMessage.hostname = string(match[3])
 	logMessage.ip = Ip2Long(string(match[4]))
 
-
 	parsed, err := time.Parse("02/Jan/2006:15:04:05 -0700", string(match[6]))
 	HandleError(err)
+
+	if err != nil {
+		return logMessage, false
+	}
 
 	loc, _ := time.LoadLocation("UTC")
 	parsed = parsed.In(loc)
