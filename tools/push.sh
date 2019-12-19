@@ -7,4 +7,4 @@ if [[ -z "$version" ]]; then
     exit 1
 fi
 
-docker commit loggo mrandersen7/logc-go:1.${version}; docker push mrandersen7/logc-go
+docker commit loggo mrandersen7/logc-go:${version}; docker push mrandersen7/logc-go

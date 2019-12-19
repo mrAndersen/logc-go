@@ -8,8 +8,10 @@ import (
 )
 
 type Writer struct {
-	chPort string
-	chAddr string
+	chPort     string
+	chAddr     string
+	chUser     string
+	chPassword string
 
 	connection  *sqlx.DB
 	flushPeriod time.Duration
@@ -67,16 +69,23 @@ func (s *Writer) tryCreateTable() {
 func (s *Writer) connect() {
 	s.flushPeriod = time.Second * 10
 
-	db, err := sqlx.Open("clickhouse", fmt.Sprintf("tcp://%s:%s", s.chAddr, s.chPort))
+	connectionString := fmt.Sprintf("tcp://%s:%s?username=%s&password=%s", s.chAddr, s.chPort, s.chUser, s.chPassword)
+
+	db, err := sqlx.Open("clickhouse", connectionString)
 	s.connection = db
 
-	HandleError(err)
-	HandleError(db.Ping())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if db.Ping() != nil {
+		log.Fatal(db.Ping())
+	}
 
 	s.table.title = "nginx"
 	s.table.engine = "MergeTree(date, (status, time, uri, method, hostname), 8192)"
 	s.table.createNginxLayout()
 	s.tryCreateTable()
 
-	log.Printf("Connected to clickhouse on %s:%s/%s", s.chAddr, s.chPort, s.table.title)
+	log.Printf("Connected to clickhouse on %s/%s", connectionString, s.table.title)
 }

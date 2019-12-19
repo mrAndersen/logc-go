@@ -1,11 +1,6 @@
 FROM debian:buster
 
 RUN apt update && \
-    apt install -y netselect-apt
-
-RUN netselect-apt -o /etc/apt/sources.list
-
-RUN apt update && \
     apt install -y git gccgo-8 golang
 
 # Neosilka

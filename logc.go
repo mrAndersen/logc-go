@@ -19,10 +19,12 @@ func process(writer *Writer, parser *Parser, buf []byte) {
 
 func GetExecParameters() map[string]string {
 	parameters := map[string]string{
-		"UDP_PORT": "9222",
-		"UDP_ADDR": "0.0.0.0",
-		"CH_PORT":  "9000",
-		"CH_ADDR":  "localhost",
+		"UDP_PORT":    "9222",
+		"UDP_ADDR":    "0.0.0.0",
+		"CH_PORT":     "9000",
+		"CH_USER":     "default",
+		"CH_PASSWORD": "",
+		"CH_ADDR":     "localhost",
 	}
 
 	for k, _ := range parameters {
@@ -44,6 +46,8 @@ func main() {
 	writer := Writer{}
 	writer.chPort = p["CH_PORT"]
 	writer.chAddr = p["CH_ADDR"]
+	writer.chUser = p["CH_USER"]
+	writer.chPassword = p["CH_PASSWORD"]
 	writer.connect()
 
 	parser := Parser{}
